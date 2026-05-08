@@ -1,0 +1,572 @@
+spots:
+  # -------------------------
+  # Northeast United States
+  # -------------------------
+
+  - name: Rockaway Beach, NY
+    latitude: 40.5868
+    longitude: -73.8115
+    skill_level: intermediate
+    offshore_wind_from_degrees: 350
+    ideal_wave_min_ft: 2
+    ideal_wave_max_ft: 5
+    ideal_swell_period_min: 8
+    ideal_swell_period_max: 14
+    ideal_tide: mid
+
+  - name: Long Beach, NY
+    latitude: 40.5884
+    longitude: -73.6579
+    skill_level: intermediate
+    offshore_wind_from_degrees: 350
+    ideal_wave_min_ft: 2
+    ideal_wave_max_ft: 6
+    ideal_swell_period_min: 8
+    ideal_swell_period_max: 15
+    ideal_tide: mid
+
+  - name: Montauk, NY
+    latitude: 41.0359
+    longitude: -71.9545
+    skill_level: advanced
+    offshore_wind_from_degrees: 330
+    ideal_wave_min_ft: 3
+    ideal_wave_max_ft: 8
+    ideal_swell_period_min: 9
+    ideal_swell_period_max: 16
+    ideal_tide: low_to_mid
+
+  - name: Narragansett, RI
+    latitude: 41.4304
+    longitude: -71.4559
+    skill_level: beginner
+    offshore_wind_from_degrees: 315
+    ideal_wave_min_ft: 1
+    ideal_wave_max_ft: 4
+    ideal_swell_period_min: 7
+    ideal_swell_period_max: 13
+    ideal_tide: mid
+
+  - name: Cape Cod, MA
+    latitude: 41.8948
+    longitude: -69.9610
+    skill_level: intermediate
+    offshore_wind_from_degrees: 270
+    ideal_wave_min_ft: 2
+    ideal_wave_max_ft: 6
+    ideal_swell_period_min: 8
+    ideal_swell_period_max: 15
+    ideal_tide: mid
+
+  # -------------------------
+  # Southeast United States
+  # -------------------------
+
+  - name: Cocoa Beach, FL
+    latitude: 28.3200
+    longitude: -80.6076
+    skill_level: beginner
+    offshore_wind_from_degrees: 270
+    ideal_wave_min_ft: 1
+    ideal_wave_max_ft: 4
+    ideal_swell_period_min: 7
+    ideal_swell_period_max: 12
+    ideal_tide: mid
+
+  - name: Sebastian Inlet, FL
+    latitude: 27.8606
+    longitude: -80.4484
+    skill_level: intermediate
+    offshore_wind_from_degrees: 270
+    ideal_wave_min_ft: 2
+    ideal_wave_max_ft: 6
+    ideal_swell_period_min: 8
+    ideal_swell_period_max: 14
+    ideal_tide: low_to_mid
+
+  - name: Wrightsville Beach, NC
+    latitude: 34.2085
+    longitude: -77.7964
+    skill_level: beginner
+    offshore_wind_from_degrees: 300
+    ideal_wave_min_ft: 1
+    ideal_wave_max_ft: 5
+    ideal_swell_period_min: 7
+    ideal_swell_period_max: 13
+    ideal_tide: mid
+
+  - name: Folly Beach, SC
+    latitude: 32.6552
+    longitude: -79.9404
+    skill_level: beginner
+    offshore_wind_from_degrees: 300
+    ideal_wave_min_ft: 1
+    ideal_wave_max_ft: 4
+    ideal_swell_period_min: 7
+    ideal_swell_period_max: 12
+    ideal_tide: mid_to_high
+
+  # -------------------------
+  # California
+  # -------------------------
+
+  - name: Malibu, CA
+    latitude: 34.0370
+    longitude: -118.6770
+    skill_level: intermediate
+    offshore_wind_from_degrees: 45
+    ideal_wave_min_ft: 2
+    ideal_wave_max_ft: 6
+    ideal_swell_period_min: 9
+    ideal_swell_period_max: 16
+    ideal_tide: mid_to_high
+
+  - name: Huntington Beach, CA
+    latitude: 33.6553
+    longitude: -118.0030
+    skill_level: intermediate
+    offshore_wind_from_degrees: 45
+    ideal_wave_min_ft: 2
+    ideal_wave_max_ft: 6
+    ideal_swell_period_min: 8
+    ideal_swell_period_max: 15
+    ideal_tide: mid
+
+  - name: Trestles, CA
+    latitude: 33.3846
+    longitude: -117.5931
+    skill_level: advanced
+    offshore_wind_from_degrees: 45
+    ideal_wave_min_ft: 3
+    ideal_wave_max_ft: 8
+    ideal_swell_period_min: 10
+    ideal_swell_period_max: 18
+    ideal_tide: low_to_mid
+
+  - name: Ocean Beach, San Francisco, CA
+    latitude: 37.7597
+    longitude: -122.5107
+    skill_level: advanced
+    offshore_wind_from_degrees: 90
+    ideal_wave_min_ft: 3
+    ideal_wave_max_ft: 10
+    ideal_swell_period_min: 10
+    ideal_swell_period_max: 18
+    ideal_tide: mid
+
+  - name: Santa Cruz, CA
+    latitude: 36.9516
+    longitude: -122.0264
+    skill_level: intermediate
+    offshore_wind_from_degrees: 45
+    ideal_wave_min_ft: 2
+    ideal_wave_max_ft: 7
+    ideal_swell_period_min: 9
+    ideal_swell_period_max: 16
+    ideal_tide: mid
+
+  - name: La Jolla, CA
+    latitude: 32.8507
+    longitude: -117.2725
+    skill_level: intermediate
+    offshore_wind_from_degrees: 90
+    ideal_wave_min_ft: 2
+    ideal_wave_max_ft: 6
+    ideal_swell_period_min: 8
+    ideal_swell_period_max: 15
+    ideal_tide: mid
+
+  # -------------------------
+  # Hawaii
+  # -------------------------
+
+  - name: Waikiki, Hawaii
+    latitude: 21.2766
+    longitude: -157.8269
+    skill_level: beginner
+    offshore_wind_from_degrees: 45
+    ideal_wave_min_ft: 1
+    ideal_wave_max_ft: 4
+    ideal_swell_period_min: 8
+    ideal_swell_period_max: 14
+    ideal_tide: mid_to_high
+
+  - name: Pipeline, Hawaii
+    latitude: 21.6652
+    longitude: -158.0516
+    skill_level: advanced
+    offshore_wind_from_degrees: 135
+    ideal_wave_min_ft: 4
+    ideal_wave_max_ft: 12
+    ideal_swell_period_min: 10
+    ideal_swell_period_max: 18
+    ideal_tide: mid
+
+  - name: Sunset Beach, Hawaii
+    latitude: 21.6797
+    longitude: -158.0390
+    skill_level: advanced
+    offshore_wind_from_degrees: 135
+    ideal_wave_min_ft: 4
+    ideal_wave_max_ft: 14
+    ideal_swell_period_min: 10
+    ideal_swell_period_max: 18
+    ideal_tide: mid
+
+  - name: Honolua Bay, Maui
+    latitude: 21.0133
+    longitude: -156.6398
+    skill_level: advanced
+    offshore_wind_from_degrees: 120
+    ideal_wave_min_ft: 3
+    ideal_wave_max_ft: 10
+    ideal_swell_period_min: 10
+    ideal_swell_period_max: 18
+    ideal_tide: mid
+
+  # -------------------------
+  # Portugal
+  # -------------------------
+
+  - name: Ericeira, Portugal
+    latitude: 38.9637
+    longitude: -9.4156
+    skill_level: intermediate
+    offshore_wind_from_degrees: 90
+    ideal_wave_min_ft: 3
+    ideal_wave_max_ft: 7
+    ideal_swell_period_min: 9
+    ideal_swell_period_max: 16
+    ideal_tide: mid
+
+  - name: Nazaré, Portugal
+    latitude: 39.6029
+    longitude: -9.0702
+    skill_level: advanced
+    offshore_wind_from_degrees: 90
+    ideal_wave_min_ft: 5
+    ideal_wave_max_ft: 15
+    ideal_swell_period_min: 10
+    ideal_swell_period_max: 18
+    ideal_tide: mid_to_high
+
+  - name: Peniche, Portugal
+    latitude: 39.3558
+    longitude: -9.3811
+    skill_level: intermediate
+    offshore_wind_from_degrees: 90
+    ideal_wave_min_ft: 2
+    ideal_wave_max_ft: 7
+    ideal_swell_period_min: 8
+    ideal_swell_period_max: 16
+    ideal_tide: mid
+
+  - name: Sagres, Portugal
+    latitude: 37.0086
+    longitude: -8.9437
+    skill_level: intermediate
+    offshore_wind_from_degrees: 90
+    ideal_wave_min_ft: 2
+    ideal_wave_max_ft: 8
+    ideal_swell_period_min: 8
+    ideal_swell_period_max: 16
+    ideal_tide: mid
+
+  # -------------------------
+  # Morocco
+  # -------------------------
+
+  - name: Taghazout, Morocco
+    latitude: 30.5450
+    longitude: -9.7080
+    skill_level: intermediate
+    offshore_wind_from_degrees: 90
+    ideal_wave_min_ft: 3
+    ideal_wave_max_ft: 8
+    ideal_swell_period_min: 9
+    ideal_swell_period_max: 17
+    ideal_tide: low_to_mid
+
+  - name: Anchor Point, Morocco
+    latitude: 30.5444
+    longitude: -9.7321
+    skill_level: advanced
+    offshore_wind_from_degrees: 90
+    ideal_wave_min_ft: 4
+    ideal_wave_max_ft: 12
+    ideal_swell_period_min: 10
+    ideal_swell_period_max: 18
+    ideal_tide: low_to_mid
+
+  - name: Imsouane, Morocco
+    latitude: 30.8396
+    longitude: -9.8201
+    skill_level: beginner
+    offshore_wind_from_degrees: 90
+    ideal_wave_min_ft: 2
+    ideal_wave_max_ft: 6
+    ideal_swell_period_min: 8
+    ideal_swell_period_max: 16
+    ideal_tide: mid
+
+  - name: Dakhla, Morocco
+    latitude: 23.6848
+    longitude: -15.9579
+    skill_level: intermediate
+    offshore_wind_from_degrees: 90
+    ideal_wave_min_ft: 2
+    ideal_wave_max_ft: 7
+    ideal_swell_period_min: 8
+    ideal_swell_period_max: 15
+    ideal_tide: mid
+
+  # -------------------------
+  # France and Spain
+  # -------------------------
+
+  - name: Hossegor, France
+    latitude: 43.6647
+    longitude: -1.4406
+    skill_level: advanced
+    offshore_wind_from_degrees: 90
+    ideal_wave_min_ft: 3
+    ideal_wave_max_ft: 10
+    ideal_swell_period_min: 9
+    ideal_swell_period_max: 17
+    ideal_tide: mid
+
+  - name: Biarritz, France
+    latitude: 43.4832
+    longitude: -1.5586
+    skill_level: intermediate
+    offshore_wind_from_degrees: 90
+    ideal_wave_min_ft: 2
+    ideal_wave_max_ft: 7
+    ideal_swell_period_min: 8
+    ideal_swell_period_max: 16
+    ideal_tide: mid
+
+  - name: Mundaka, Spain
+    latitude: 43.4076
+    longitude: -2.6997
+    skill_level: advanced
+    offshore_wind_from_degrees: 180
+    ideal_wave_min_ft: 3
+    ideal_wave_max_ft: 10
+    ideal_swell_period_min: 10
+    ideal_swell_period_max: 18
+    ideal_tide: low_to_mid
+
+  - name: Zarautz, Spain
+    latitude: 43.2850
+    longitude: -2.1716
+    skill_level: intermediate
+    offshore_wind_from_degrees: 180
+    ideal_wave_min_ft: 2
+    ideal_wave_max_ft: 7
+    ideal_swell_period_min: 8
+    ideal_swell_period_max: 16
+    ideal_tide: mid
+
+  # -------------------------
+  # Indonesia
+  # -------------------------
+
+  - name: Uluwatu, Bali
+    latitude: -8.8153
+    longitude: 115.0870
+    skill_level: advanced
+    offshore_wind_from_degrees: 90
+    ideal_wave_min_ft: 4
+    ideal_wave_max_ft: 12
+    ideal_swell_period_min: 10
+    ideal_swell_period_max: 18
+    ideal_tide: mid
+
+  - name: Canggu, Bali
+    latitude: -8.6478
+    longitude: 115.1385
+    skill_level: intermediate
+    offshore_wind_from_degrees: 90
+    ideal_wave_min_ft: 2
+    ideal_wave_max_ft: 7
+    ideal_swell_period_min: 8
+    ideal_swell_period_max: 16
+    ideal_tide: mid
+
+  - name: Padang Padang, Bali
+    latitude: -8.8111
+    longitude: 115.1020
+    skill_level: advanced
+    offshore_wind_from_degrees: 90
+    ideal_wave_min_ft: 4
+    ideal_wave_max_ft: 10
+    ideal_swell_period_min: 10
+    ideal_swell_period_max: 18
+    ideal_tide: mid_to_high
+
+  - name: Desert Point, Lombok
+    latitude: -8.7424
+    longitude: 115.8560
+    skill_level: advanced
+    offshore_wind_from_degrees: 90
+    ideal_wave_min_ft: 4
+    ideal_wave_max_ft: 12
+    ideal_swell_period_min: 10
+    ideal_swell_period_max: 18
+    ideal_tide: low_to_mid
+
+  # -------------------------
+  # Australia
+  # -------------------------
+
+  - name: Bondi Beach, Australia
+    latitude: -33.8915
+    longitude: 151.2767
+    skill_level: beginner
+    offshore_wind_from_degrees: 270
+    ideal_wave_min_ft: 1
+    ideal_wave_max_ft: 5
+    ideal_swell_period_min: 7
+    ideal_swell_period_max: 14
+    ideal_tide: mid
+
+  - name: Bells Beach, Australia
+    latitude: -38.3690
+    longitude: 144.2830
+    skill_level: advanced
+    offshore_wind_from_degrees: 315
+    ideal_wave_min_ft: 3
+    ideal_wave_max_ft: 10
+    ideal_swell_period_min: 10
+    ideal_swell_period_max: 18
+    ideal_tide: mid
+
+  - name: Snapper Rocks, Australia
+    latitude: -28.1650
+    longitude: 153.5500
+    skill_level: intermediate
+    offshore_wind_from_degrees: 225
+    ideal_wave_min_ft: 2
+    ideal_wave_max_ft: 8
+    ideal_swell_period_min: 9
+    ideal_swell_period_max: 17
+    ideal_tide: mid
+
+  - name: Margaret River, Australia
+    latitude: -33.9740
+    longitude: 114.9890
+    skill_level: advanced
+    offshore_wind_from_degrees: 90
+    ideal_wave_min_ft: 4
+    ideal_wave_max_ft: 12
+    ideal_swell_period_min: 10
+    ideal_swell_period_max: 18
+    ideal_tide: mid
+
+  # -------------------------
+  # Central America and Mexico
+  # -------------------------
+
+  - name: Tamarindo, Costa Rica
+    latitude: 10.2993
+    longitude: -85.8371
+    skill_level: beginner
+    offshore_wind_from_degrees: 90
+    ideal_wave_min_ft: 1
+    ideal_wave_max_ft: 5
+    ideal_swell_period_min: 7
+    ideal_swell_period_max: 14
+    ideal_tide: mid
+
+  - name: Santa Teresa, Costa Rica
+    latitude: 9.6457
+    longitude: -85.1686
+    skill_level: intermediate
+    offshore_wind_from_degrees: 90
+    ideal_wave_min_ft: 2
+    ideal_wave_max_ft: 7
+    ideal_swell_period_min: 8
+    ideal_swell_period_max: 16
+    ideal_tide: mid
+
+  - name: Pavones, Costa Rica
+    latitude: 8.3944
+    longitude: -83.1360
+    skill_level: intermediate
+    offshore_wind_from_degrees: 45
+    ideal_wave_min_ft: 3
+    ideal_wave_max_ft: 8
+    ideal_swell_period_min: 9
+    ideal_swell_period_max: 17
+    ideal_tide: mid
+
+  - name: Puerto Escondido, Mexico
+    latitude: 15.8719
+    longitude: -97.0767
+    skill_level: advanced
+    offshore_wind_from_degrees: 45
+    ideal_wave_min_ft: 4
+    ideal_wave_max_ft: 12
+    ideal_swell_period_min: 10
+    ideal_swell_period_max: 18
+    ideal_tide: mid
+
+  - name: Sayulita, Mexico
+    latitude: 20.8689
+    longitude: -105.4408
+    skill_level: beginner
+    offshore_wind_from_degrees: 90
+    ideal_wave_min_ft: 1
+    ideal_wave_max_ft: 5
+    ideal_swell_period_min: 7
+    ideal_swell_period_max: 14
+    ideal_tide: mid
+
+  # -------------------------
+  # South Africa and Japan
+  # -------------------------
+
+  - name: Jeffreys Bay, South Africa
+    latitude: -34.0500
+    longitude: 24.9167
+    skill_level: advanced
+    offshore_wind_from_degrees: 270
+    ideal_wave_min_ft: 3
+    ideal_wave_max_ft: 10
+    ideal_swell_period_min: 10
+    ideal_swell_period_max: 18
+    ideal_tide: mid
+
+  - name: Muizenberg, South Africa
+    latitude: -34.1083
+    longitude: 18.4708
+    skill_level: beginner
+    offshore_wind_from_degrees: 315
+    ideal_wave_min_ft: 1
+    ideal_wave_max_ft: 5
+    ideal_swell_period_min: 7
+    ideal_swell_period_max: 14
+    ideal_tide: mid
+
+  - name: Chiba, Japan
+    latitude: 35.3556
+    longitude: 140.3678
+    skill_level: intermediate
+    offshore_wind_from_degrees: 315
+    ideal_wave_min_ft: 2
+    ideal_wave_max_ft: 7
+    ideal_swell_period_min: 8
+    ideal_swell_period_max: 16
+    ideal_tide: mid
+
+  - name: Shonan, Japan
+    latitude: 35.3069
+    longitude: 139.4813
+    skill_level: beginner
+    offshore_wind_from_degrees: 315
+    ideal_wave_min_ft: 1
+    ideal_wave_max_ft: 5
+    ideal_swell_period_min: 7
+    ideal_swell_period_max: 14
+    ideal_tide: mid
