@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pandas as pd
+import pydeck as pdk
 import streamlit as st
 
 from src.database import clear_database, load_forecasts_from_db, save_forecasts_to_db
@@ -24,11 +25,10 @@ st.caption(f"Last updated: {pd.Timestamp.now().strftime('%Y-%m-%d %I:%M %p')}")
 def infer_region(spot_name: str) -> str:
     """
     Adds a simple region label based on the spot name.
-    Uses more specific checks first so spots like Canggu do not get mislabeled as California.
+    Uses specific checks so spots like Canggu do not get mislabeled as California.
     """
     name = spot_name.lower()
 
-    # Indonesia first so Canggu, Uluwatu, Bali, Lombok do not get confused with California
     if any(place in name for place in ["bali", "lombok", "uluwatu", "canggu", "padang padang", "desert point"]):
         return "Indonesia"
 
@@ -62,17 +62,91 @@ def infer_region(spot_name: str) -> str:
     if any(place in name for place in ["cocoa beach", "sebastian inlet", "wrightsville", "folly beach"]):
         return "Southeast US"
 
-    if any(place in name for place in [
-        "malibu",
-        "huntington beach",
-        "trestles",
-        "ocean beach, san francisco",
-        "santa cruz",
-        "la jolla",
-    ]):
+    if any(
+        place in name
+        for place in [
+            "malibu",
+            "huntington beach",
+            "trestles",
+            "ocean beach, san francisco",
+            "santa cruz",
+            "la jolla",
+        ]
+    ):
         return "California"
 
     return "Other"
+
+
+def get_score_color(score: float) -> list[int]:
+    """
+    Returns RGBA color for the interactive map.
+    """
+    if score >= 85:
+        return [34, 197, 94, 180]  # green
+    if score >= 70:
+        return [132, 204, 22, 180]  # light green
+    if score >= 55:
+        return [234, 179, 8, 180]  # yellow
+    if score >= 40:
+        return [249, 115, 22, 180]  # orange
+    return [239, 68, 68, 180]  # red
+
+
+def display_score_breakdown(row: pd.Series) -> None:
+    """
+    Shows how the total surf score was calculated.
+    Requires the upgraded scoring.py that creates component score columns.
+    """
+    required_cols = [
+        "wave_score",
+        "swell_score",
+        "wind_speed_score",
+        "wind_direction_score",
+        "water_temp_score",
+        "time_score",
+    ]
+
+    missing = [col for col in required_cols if col not in row.index]
+
+    if missing:
+        st.warning(
+            "Score breakdown is unavailable because the component score columns are missing. "
+            "Make sure you replaced `src/scoring.py` with the upgraded version."
+        )
+        return
+
+    breakdown = pd.DataFrame(
+        {
+            "Component": [
+                "Wave Height",
+                "Swell Period",
+                "Wind Speed",
+                "Wind Direction",
+                "Water Temperature",
+                "Time Preference",
+            ],
+            "Score": [
+                row["wave_score"],
+                row["swell_score"],
+                row["wind_speed_score"],
+                row["wind_direction_score"],
+                row["water_temp_score"],
+                row["time_score"],
+            ],
+            "Max Score": [30, 20, 20, 15, 5, 10],
+        }
+    )
+
+    breakdown["Percent"] = (breakdown["Score"] / breakdown["Max Score"] * 100).round(1)
+
+    st.dataframe(
+        breakdown,
+        use_container_width=True,
+        hide_index=True,
+    )
+
+    st.bar_chart(breakdown.set_index("Component")["Score"])
 
 
 @st.cache_data(ttl=60 * 60)
@@ -189,7 +263,8 @@ if view_database:
 regions = sorted(df["region"].dropna().unique())
 
 default_regions = [
-    region for region in ["Northeast US", "California", "Hawaii", "Portugal", "Morocco"]
+    region
+    for region in ["Northeast US", "California", "Hawaii", "Portugal", "Morocco", "Indonesia"]
     if region in regions
 ]
 
@@ -251,7 +326,7 @@ st.subheader(
     f"Best overall window: {best_row['spot']} at {best_row['time'].strftime('%A, %b %d at %I:%M %p')}"
 )
 
-metric_cols = st.columns(5)
+metric_cols = st.columns(6)
 
 metric_cols[0].metric("Best Region", best_row["region"])
 metric_cols[1].metric("Surf Score", f"{best_row['surf_score']:.0f}/100")
@@ -259,15 +334,26 @@ metric_cols[2].metric("Rating", best_row["surf_rating"])
 metric_cols[3].metric("Wave Height", f"{best_row['wave_height_ft']:.1f} ft")
 metric_cols[4].metric("Wind Speed", f"{best_row['wind_speed_mph']:.1f} mph")
 
+if "board_recommendation" in best_row.index:
+    metric_cols[5].metric("Board", best_row["board_recommendation"])
+else:
+    metric_cols[5].metric("Board", "N/A")
+
 st.info(best_row["recommendation_reason"])
+
+with st.expander("See why this score is high or low"):
+    display_score_breakdown(best_row)
 
 st.markdown("---")
 
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
+
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs(
     [
         "Overview",
         "Recommendations",
-        "Map",
+        "Interactive Map",
+        "Compare Spots",
+        "Alerts",
         "Spot Detail",
         "Raw Data",
         "Methodology",
@@ -278,22 +364,21 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
 with tab1:
     st.subheader("Top 5 Surf Windows")
 
-    top_5 = (
-        df_window.sort_values("surf_score", ascending=False)
-        .head(5)[
-            [
-                "spot",
-                "region",
-                "time",
-                "surf_score",
-                "surf_rating",
-                "wave_height_ft",
-                "swell_wave_period",
-                "wind_speed_mph",
-            ]
-        ]
-        .copy()
-    )
+    overview_cols = [
+        "spot",
+        "region",
+        "time",
+        "surf_score",
+        "surf_rating",
+        "wave_height_ft",
+        "swell_wave_period",
+        "wind_speed_mph",
+    ]
+
+    if "board_recommendation" in df_window.columns:
+        overview_cols.append("board_recommendation")
+
+    top_5 = df_window.sort_values("surf_score", ascending=False).head(5)[overview_cols].copy()
 
     top_5["time"] = top_5["time"].dt.strftime("%a %b %d, %I:%M %p")
     top_5["wave_height_ft"] = top_5["wave_height_ft"].round(1)
@@ -309,6 +394,7 @@ with tab1:
             "wave_height_ft": "Wave ft",
             "swell_wave_period": "Swell sec",
             "wind_speed_mph": "Wind mph",
+            "board_recommendation": "Recommended Board",
         }
     )
 
@@ -384,19 +470,23 @@ with tab2:
 
     top_recs = get_top_recommendations(df_window, n=15)
 
-    rec_table = top_recs[
-        [
-            "spot",
-            "region",
-            "time",
-            "surf_score",
-            "surf_rating",
-            "wave_height_ft",
-            "swell_wave_period",
-            "wind_speed_mph",
-            "recommendation_reason",
-        ]
-    ].copy()
+    rec_cols = [
+        "spot",
+        "region",
+        "time",
+        "surf_score",
+        "surf_rating",
+        "wave_height_ft",
+        "swell_wave_period",
+        "wind_speed_mph",
+    ]
+
+    if "board_recommendation" in top_recs.columns:
+        rec_cols.append("board_recommendation")
+
+    rec_cols.append("recommendation_reason")
+
+    rec_table = top_recs[rec_cols].copy()
 
     rec_table["time"] = rec_table["time"].dt.strftime("%a %b %d, %I:%M %p")
     rec_table["wave_height_ft"] = rec_table["wave_height_ft"].round(1)
@@ -412,6 +502,7 @@ with tab2:
             "wave_height_ft": "Wave ft",
             "swell_wave_period": "Swell sec",
             "wind_speed_mph": "Wind mph",
+            "board_recommendation": "Recommended Board",
             "recommendation_reason": "Why It Ranks Well",
         }
     )
@@ -424,7 +515,7 @@ with tab2:
 
 
 with tab3:
-    st.subheader("Best Surf Score by Location")
+    st.subheader("Interactive Surf Score Map")
 
     map_df = (
         df_window.sort_values("surf_score", ascending=False)
@@ -433,24 +524,70 @@ with tab3:
         .copy()
     )
 
-    map_df = map_df.rename(
-        columns={
-            "latitude": "lat",
-            "longitude": "lon",
+    if map_df.empty:
+        st.warning("No map data available for the selected filters.")
+    else:
+        map_df["latitude"] = pd.to_numeric(map_df["latitude"], errors="coerce")
+        map_df["longitude"] = pd.to_numeric(map_df["longitude"], errors="coerce")
+        map_df = map_df.dropna(subset=["latitude", "longitude"])
+
+        map_df["color"] = map_df["surf_score"].apply(get_score_color)
+
+        # Large enough to see, but not too massive.
+        map_df["radius"] = map_df["surf_score"] * 12000
+
+        midpoint_lat = map_df["latitude"].mean()
+        midpoint_lon = map_df["longitude"].mean()
+
+        layer = pdk.Layer(
+            "ScatterplotLayer",
+            data=map_df,
+            get_position="[longitude, latitude]",
+            get_radius="radius",
+            get_fill_color="color",
+            pickable=True,
+            opacity=0.75,
+            stroked=True,
+            filled=True,
+            line_width_min_pixels=2,
+            get_line_color=[255, 255, 255],
+        )
+
+        tooltip = {
+            "html": """
+            <b>{spot}</b><br/>
+            Region: {region}<br/>
+            Score: {surf_score}/100<br/>
+            Rating: {surf_rating}<br/>
+            Wave: {wave_height_ft} ft<br/>
+            Wind: {wind_speed_mph} mph
+            """,
+            "style": {
+                "backgroundColor": "black",
+                "color": "white",
+            },
         }
-    )
 
-    st.map(
-        map_df[
-            [
-                "lat",
-                "lon",
-            ]
-        ]
-    )
+        view_state = pdk.ViewState(
+            latitude=midpoint_lat,
+            longitude=midpoint_lon,
+            zoom=1,
+            pitch=0,
+        )
 
-    map_table = map_df[
-        [
+        st.pydeck_chart(
+            pdk.Deck(
+                layers=[layer],
+                initial_view_state=view_state,
+                tooltip=tooltip,
+            )
+        )
+
+        st.caption(
+            "Bubble size represents surf score. Green means excellent conditions, yellow/orange means mixed, and red means poor."
+        )
+
+        map_cols = [
             "spot",
             "region",
             "time",
@@ -459,30 +596,216 @@ with tab3:
             "wave_height_ft",
             "wind_speed_mph",
         ]
-    ].copy()
 
-    map_table["time"] = map_table["time"].dt.strftime("%a %b %d, %I:%M %p")
-    map_table["wave_height_ft"] = map_table["wave_height_ft"].round(1)
-    map_table["wind_speed_mph"] = map_table["wind_speed_mph"].round(1)
+        if "board_recommendation" in map_df.columns:
+            map_cols.append("board_recommendation")
+
+        map_table = map_df[map_cols].copy()
+
+        map_table["time"] = map_table["time"].dt.strftime("%a %b %d, %I:%M %p")
+        map_table["wave_height_ft"] = map_table["wave_height_ft"].round(1)
+        map_table["wind_speed_mph"] = map_table["wind_speed_mph"].round(1)
+
+        st.dataframe(
+            map_table.rename(
+                columns={
+                    "spot": "Spot",
+                    "region": "Region",
+                    "time": "Best Time",
+                    "surf_score": "Best Score",
+                    "surf_rating": "Rating",
+                    "wave_height_ft": "Wave ft",
+                    "wind_speed_mph": "Wind mph",
+                    "board_recommendation": "Recommended Board",
+                }
+            ),
+            use_container_width=True,
+            hide_index=True,
+        )
+
+
+with tab4:
+    st.subheader("Compare Two Surf Spots")
+
+    compare_cols = st.columns(2)
+
+    with compare_cols[0]:
+        spot_a = st.selectbox(
+            "First spot",
+            spots,
+            index=0,
+        )
+
+    with compare_cols[1]:
+        default_index = 1 if len(spots) > 1 else 0
+        spot_b = st.selectbox(
+            "Second spot",
+            spots,
+            index=default_index,
+        )
+
+    compare_df = df_window[df_window["spot"].isin([spot_a, spot_b])].copy()
+
+    comparison_summary = (
+        compare_df.groupby("spot")
+        .agg(
+            avg_score=("surf_score", "mean"),
+            best_score=("surf_score", "max"),
+            avg_wave_ft=("wave_height_ft", "mean"),
+            avg_swell_sec=("swell_wave_period", "mean"),
+            avg_wind_mph=("wind_speed_mph", "mean"),
+        )
+        .reset_index()
+        .round(1)
+    )
 
     st.dataframe(
-        map_table.rename(
+        comparison_summary.rename(
             columns={
                 "spot": "Spot",
-                "region": "Region",
-                "time": "Best Time",
-                "surf_score": "Best Score",
-                "surf_rating": "Rating",
-                "wave_height_ft": "Wave ft",
-                "wind_speed_mph": "Wind mph",
+                "avg_score": "Average Score",
+                "best_score": "Best Score",
+                "avg_wave_ft": "Average Wave ft",
+                "avg_swell_sec": "Average Swell sec",
+                "avg_wind_mph": "Average Wind mph",
             }
         ),
         use_container_width=True,
         hide_index=True,
     )
 
+    st.subheader("Score Trend Comparison")
 
-with tab4:
+    compare_chart = compare_df.pivot_table(
+        index="time",
+        columns="spot",
+        values="surf_score",
+        aggfunc="mean",
+    )
+
+    st.line_chart(compare_chart)
+
+    st.subheader("Best Window for Each Spot")
+
+    best_each = (
+        compare_df.sort_values("surf_score", ascending=False)
+        .groupby("spot")
+        .head(1)
+        .copy()
+    )
+
+    for _, row in best_each.iterrows():
+        st.markdown(f"### {row['spot']}")
+        st.write(f"**Best time:** {row['time'].strftime('%A, %b %d at %I:%M %p')}")
+        st.write(f"**Score:** {row['surf_score']:.0f}/100 — {row['surf_rating']}")
+
+        if "board_recommendation" in row.index:
+            st.write(f"**Recommended board:** {row['board_recommendation']}")
+
+        st.write(row["recommendation_reason"])
+
+        with st.expander(f"See score breakdown for {row['spot']}"):
+            display_score_breakdown(row)
+
+
+with tab5:
+    st.subheader("Surf Alert Candidates")
+
+    st.write(
+        "Use this section to find upcoming windows that pass your personal surf threshold."
+    )
+
+    alert_cols = st.columns(3)
+
+    with alert_cols[0]:
+        alert_score = st.slider(
+            "Minimum surf score",
+            min_value=40,
+            max_value=100,
+            value=80,
+        )
+
+    with alert_cols[1]:
+        alert_rating = st.selectbox(
+            "Minimum rating",
+            ["Any", "Okay", "Good", "Excellent"],
+            index=0,
+        )
+
+    with alert_cols[2]:
+        max_alerts = st.slider(
+            "Number of alerts to show",
+            min_value=5,
+            max_value=30,
+            value=10,
+        )
+
+    alert_df = df_window[df_window["surf_score"] >= alert_score].copy()
+
+    rating_order = {
+        "Bad": 0,
+        "Poor": 1,
+        "Okay": 2,
+        "Good": 3,
+        "Excellent": 4,
+    }
+
+    if alert_rating != "Any":
+        min_rating_value = rating_order[alert_rating]
+        alert_df = alert_df[
+            alert_df["surf_rating"].map(rating_order) >= min_rating_value
+        ]
+
+    alert_df = alert_df.sort_values("surf_score", ascending=False).head(max_alerts)
+
+    if alert_df.empty:
+        st.warning("No surf windows match your alert settings.")
+    else:
+        alert_cols_to_show = [
+            "spot",
+            "region",
+            "time",
+            "surf_score",
+            "surf_rating",
+            "wave_height_ft",
+            "swell_wave_period",
+            "wind_speed_mph",
+        ]
+
+        if "board_recommendation" in alert_df.columns:
+            alert_cols_to_show.append("board_recommendation")
+
+        alert_cols_to_show.append("recommendation_reason")
+
+        alert_table = alert_df[alert_cols_to_show].copy()
+
+        alert_table["time"] = alert_table["time"].dt.strftime("%a %b %d, %I:%M %p")
+        alert_table["wave_height_ft"] = alert_table["wave_height_ft"].round(1)
+        alert_table["wind_speed_mph"] = alert_table["wind_speed_mph"].round(1)
+
+        st.dataframe(
+            alert_table.rename(
+                columns={
+                    "spot": "Spot",
+                    "region": "Region",
+                    "time": "Time",
+                    "surf_score": "Score",
+                    "surf_rating": "Rating",
+                    "wave_height_ft": "Wave ft",
+                    "swell_wave_period": "Swell sec",
+                    "wind_speed_mph": "Wind mph",
+                    "board_recommendation": "Recommended Board",
+                    "recommendation_reason": "Reason",
+                }
+            ),
+            use_container_width=True,
+            hide_index=True,
+        )
+
+
+with tab6:
+    st.subheader("Spot Detail")
+
     selected_detail_spot = st.selectbox(
         "Detailed spot view",
         spots,
@@ -510,8 +833,23 @@ with tab4:
         st.subheader(f"Surf Score: {selected_detail_spot}")
         st.line_chart(detail.set_index("time")[["surf_score"]])
 
+    best_detail = detail.sort_values("surf_score", ascending=False).iloc[0]
 
-with tab5:
+    st.markdown("---")
+    st.subheader("Best Window Breakdown for This Spot")
+    st.write(f"**Best time:** {best_detail['time'].strftime('%A, %b %d at %I:%M %p')}")
+    st.write(f"**Score:** {best_detail['surf_score']:.0f}/100 — {best_detail['surf_rating']}")
+
+    if "board_recommendation" in best_detail.index:
+        st.write(f"**Recommended board:** {best_detail['board_recommendation']}")
+
+    st.write(best_detail["recommendation_reason"])
+
+    with st.expander("See score breakdown"):
+        display_score_breakdown(best_detail)
+
+
+with tab7:
     st.subheader("Raw Forecast Data")
 
     raw_cols = [
@@ -525,8 +863,12 @@ with tab5:
         "wind_speed_mph",
         "wind_direction_10m",
         "sea_surface_temperature",
-        "recommendation_reason",
     ]
+
+    if "board_recommendation" in df_window.columns:
+        raw_cols.append("board_recommendation")
+
+    raw_cols.append("recommendation_reason")
 
     raw = df_window[raw_cols].copy()
     raw["time"] = raw["time"].dt.strftime("%Y-%m-%d %H:%M")
@@ -543,6 +885,7 @@ with tab5:
             "wind_speed_mph": "Wind mph",
             "wind_direction_10m": "Wind Direction",
             "sea_surface_temperature": "Sea Temp C",
+            "board_recommendation": "Recommended Board",
             "recommendation_reason": "Recommendation Reason",
         }
     )
@@ -563,7 +906,7 @@ with tab5:
     )
 
 
-with tab6:
+with tab8:
     st.subheader("Methodology")
 
     st.markdown(
@@ -583,13 +926,15 @@ with tab6:
         - **Water temperature:** adds a small comfort bonus.
         - **Preferred session time:** adjusts scores based on whether the user prefers morning, afternoon, evening, or any time.
 
-        **Personalization**
-        The sidebar controls allow users to adjust:
-        - Skill level
-        - Wind tolerance
-        - Preferred session time
-        - Forecast length
+        **Interactive features**
         - Region and surf spot filters
+        - Personalized surfer profile settings
+        - Score breakdown explanations
+        - Board recommendations
+        - Interactive map with score-based bubbles
+        - Two-spot comparison tool
+        - Alert candidates for high-quality surf windows
+        - Raw data download
 
         **Storage**
         The app can save forecast snapshots into a local SQLite database. This allows the project to support historical forecast tracking and future trend analysis.

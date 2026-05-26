@@ -142,22 +142,20 @@ def time_of_day_score(row: pd.Series, preferred_session_time: str) -> float:
     return 7
 
 
-def score_row(
+def get_score_components(
     row: pd.Series,
     user_skill_level: str = "intermediate",
     wind_tolerance: str = "medium",
     preferred_session_time: str = "any",
-) -> float:
-    score = 0
-
-    score += wave_height_score(row, user_skill_level)
-    score += swell_period_score(row)
-    score += wind_speed_score(row, wind_tolerance)
-    score += wind_direction_score(row)
-    score += water_temp_score(row)
-    score += time_of_day_score(row, preferred_session_time)
-
-    return round(min(max(score, 0), 100), 1)
+) -> dict:
+    return {
+        "wave_score": wave_height_score(row, user_skill_level),
+        "swell_score": swell_period_score(row),
+        "wind_speed_score": wind_speed_score(row, wind_tolerance),
+        "wind_direction_score": wind_direction_score(row),
+        "water_temp_score": water_temp_score(row),
+        "time_score": time_of_day_score(row, preferred_session_time),
+    }
 
 
 def label_score(score: float) -> str:
@@ -188,8 +186,8 @@ def add_surf_scores(
     scored["swell_wave_height_ft"] = scored["swell_wave_height"] * 3.28084
     scored["wind_speed_mph"] = scored["wind_speed_10m"] * 0.621371
 
-    scored["surf_score"] = scored.apply(
-        lambda row: score_row(
+    component_rows = scored.apply(
+        lambda row: get_score_components(
             row,
             user_skill_level=user_skill_level,
             wind_tolerance=wind_tolerance,
@@ -198,6 +196,22 @@ def add_surf_scores(
         axis=1,
     )
 
+    component_df = pd.DataFrame(component_rows.tolist(), index=scored.index)
+
+    scored = pd.concat([scored, component_df], axis=1)
+
+    scored["surf_score"] = scored[
+        [
+            "wave_score",
+            "swell_score",
+            "wind_speed_score",
+            "wind_direction_score",
+            "water_temp_score",
+            "time_score",
+        ]
+    ].sum(axis=1)
+
+    scored["surf_score"] = scored["surf_score"].clip(0, 100).round(1)
     scored["surf_rating"] = scored["surf_score"].apply(label_score)
 
     return scored
