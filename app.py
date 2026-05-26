@@ -6,7 +6,6 @@ import streamlit as st
 
 from src.database import clear_database, load_forecasts_from_db, save_forecasts_to_db
 from src.pipeline import build_forecast_dataset
-from src.recommendations import get_top_recommendations
 
 st.set_page_config(
     page_title="SurfIQ Dashboard",
@@ -140,7 +139,7 @@ def display_score_breakdown(row: pd.Series) -> None:
 
     st.dataframe(
         breakdown,
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )
 
@@ -251,7 +250,7 @@ if view_database:
         st.write(f"Database contains {len(db_df):,} saved forecast rows.")
         st.dataframe(
             db_df.sort_values("created_at", ascending=False).head(500),
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
         )
 
@@ -345,10 +344,9 @@ with st.expander("See why this score is high or low"):
 st.markdown("---")
 
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs(
+tab1, tab2, tab3, tab4 = st.tabs(
     [
         "Overview",
-        "Recommendations",
         "Interactive Map",
         "Compare Spots",
         "Spot Detail",
@@ -395,7 +393,7 @@ with tab1:
 
     st.dataframe(
         top_5,
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )
 
@@ -455,61 +453,12 @@ with tab1:
 
         st.dataframe(
             summary,
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
         )
 
 
 with tab2:
-    st.subheader("Top Recommended Surf Windows")
-
-    top_recs = get_top_recommendations(df_window, n=15)
-
-    rec_cols = [
-        "spot",
-        "region",
-        "time",
-        "surf_score",
-        "surf_rating",
-        "wave_height_ft",
-        "swell_wave_period",
-        "wind_speed_mph",
-    ]
-
-    if "board_recommendation" in top_recs.columns:
-        rec_cols.append("board_recommendation")
-
-    rec_cols.append("recommendation_reason")
-
-    rec_table = top_recs[rec_cols].copy()
-
-    rec_table["time"] = rec_table["time"].dt.strftime("%a %b %d, %I:%M %p")
-    rec_table["wave_height_ft"] = rec_table["wave_height_ft"].round(1)
-    rec_table["wind_speed_mph"] = rec_table["wind_speed_mph"].round(1)
-
-    rec_table = rec_table.rename(
-        columns={
-            "spot": "Spot",
-            "region": "Region",
-            "time": "Time",
-            "surf_score": "Score",
-            "surf_rating": "Rating",
-            "wave_height_ft": "Wave ft",
-            "swell_wave_period": "Swell sec",
-            "wind_speed_mph": "Wind mph",
-            "board_recommendation": "Recommended Board",
-            "recommendation_reason": "Why It Ranks Well",
-        }
-    )
-
-    st.dataframe(
-        rec_table,
-        use_container_width=True,
-        hide_index=True,
-    )
-
-
-with tab3:
     st.subheader("Interactive Surf Score Map")
 
     map_df = (
@@ -615,12 +564,12 @@ with tab3:
                         "board_recommendation": "Recommended Board",
                     }
                 ),
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
             )
 
 
-with tab4:
+with tab3:
     st.subheader("Compare Two Surf Spots")
 
     available_compare_spots = sorted(df_window["spot"].unique())
@@ -673,7 +622,7 @@ with tab4:
                         "avg_wind_mph": "Average Wind mph",
                     }
                 ),
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
             )
 
@@ -714,7 +663,7 @@ with tab4:
                         display_score_breakdown(row)
 
 
-with tab5:
+with tab4:
     st.subheader("Spot Detail")
 
     available_spots = sorted(df_window["spot"].unique())
