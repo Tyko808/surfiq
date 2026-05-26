@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 import pydeck as pdk
 import streamlit as st
@@ -81,14 +82,50 @@ def get_score_color(score: float) -> list[int]:
     Returns RGBA color for the interactive map.
     """
     if score >= 85:
-        return [34, 197, 94, 180]
+        return [34, 197, 94, 190]      # green
     if score >= 70:
-        return [132, 204, 22, 180]
+        return [132, 204, 22, 190]     # light green
     if score >= 55:
-        return [234, 179, 8, 180]
+        return [234, 179, 8, 190]      # yellow
     if score >= 40:
-        return [249, 115, 22, 180]
-    return [239, 68, 68, 180]
+        return [249, 115, 22, 190]     # orange
+    return [239, 68, 68, 190]          # red
+
+
+def spread_nearby_points(
+    df: pd.DataFrame,
+    lat_col: str = "latitude",
+    lon_col: str = "longitude",
+    precision: int = 1,
+    offset_radius: float = 0.75,
+) -> pd.DataFrame:
+    """
+    Slightly offsets nearby points so overlapping surf spots become visible.
+
+    Original latitude and longitude stay unchanged.
+    The map uses plot_lat and plot_lon only for display.
+    """
+    out = df.copy()
+
+    out["plot_lat"] = out[lat_col]
+    out["plot_lon"] = out[lon_col]
+
+    out["cluster_lat"] = out[lat_col].round(precision)
+    out["cluster_lon"] = out[lon_col].round(precision)
+
+    for _, idx in out.groupby(["cluster_lat", "cluster_lon"]).groups.items():
+        idx = list(idx)
+        n = len(idx)
+
+        if n == 1:
+            continue
+
+        for i, row_idx in enumerate(idx):
+            angle = 2 * np.pi * i / n
+            out.at[row_idx, "plot_lat"] = out.at[row_idx, lat_col] + offset_radius * np.sin(angle)
+            out.at[row_idx, "plot_lon"] = out.at[row_idx, lon_col] + offset_radius * np.cos(angle)
+
+    return out.drop(columns=["cluster_lat", "cluster_lon"])
 
 
 def display_score_breakdown(row: pd.Series) -> None:
@@ -460,6 +497,10 @@ with tab1:
 
 with tab2:
     st.subheader("Interactive Surf Score Map")
+    st.caption(
+        "Each point shows the best forecasted surf window for that spot. "
+        "Nearby surf spots are slightly offset so overlapping locations are easier to read."
+    )
 
     map_df = (
         df_window.sort_values("surf_score", ascending=False)
@@ -478,20 +519,40 @@ with tab2:
         if map_df.empty:
             st.warning("No valid latitude/longitude data available for the selected spots.")
         else:
+            map_df = spread_nearby_points(map_df, offset_radius=0.75)
+
             map_df["color"] = map_df["surf_score"].apply(get_score_color)
-            map_df["radius"] = map_df["surf_score"] * 12000
 
-            midpoint_lat = map_df["latitude"].mean()
-            midpoint_lon = map_df["longitude"].mean()
+            # Fixed small radius keeps nearby spots readable.
+            # Color shows the score, so size does not need to.
+            map_df["radius"] = 12000
 
-            layer = pdk.Layer(
+            midpoint_lat = map_df["plot_lat"].mean()
+            midpoint_lon = map_df["plot_lon"].mean()
+
+            lat_range = map_df["plot_lat"].max() - map_df["plot_lat"].min()
+            lon_range = map_df["plot_lon"].max() - map_df["plot_lon"].min()
+            max_range = max(lat_range, lon_range)
+
+            if max_range > 120:
+                zoom_level = 1
+            elif max_range > 60:
+                zoom_level = 1.5
+            elif max_range > 25:
+                zoom_level = 2.3
+            elif max_range > 10:
+                zoom_level = 3.2
+            else:
+                zoom_level = 4.5
+
+            bubble_layer = pdk.Layer(
                 "ScatterplotLayer",
                 data=map_df,
-                get_position="[longitude, latitude]",
+                get_position="[plot_lon, plot_lat]",
                 get_radius="radius",
                 get_fill_color="color",
                 pickable=True,
-                opacity=0.75,
+                opacity=0.85,
                 stroked=True,
                 filled=True,
                 line_width_min_pixels=2,
@@ -500,12 +561,16 @@ with tab2:
 
             tooltip = {
                 "html": """
-                <b>{spot}</b><br/>
-                Region: {region}<br/>
-                Score: {surf_score}/100<br/>
-                Rating: {surf_rating}<br/>
-                Wave: {wave_height_ft} ft<br/>
-                Wind: {wind_speed_mph} mph
+                <div style="font-family: Arial; padding: 6px;">
+                    <b>{spot}</b><br/>
+                    Region: {region}<br/>
+                    Score: {surf_score}/100<br/>
+                    Rating: {surf_rating}<br/>
+                    Wave: {wave_height_ft} ft<br/>
+                    Swell: {swell_wave_period} sec<br/>
+                    Wind: {wind_speed_mph} mph<br/>
+                    Board: {board_recommendation}
+                </div>
                 """,
                 "style": {
                     "backgroundColor": "black",
@@ -516,21 +581,32 @@ with tab2:
             view_state = pdk.ViewState(
                 latitude=midpoint_lat,
                 longitude=midpoint_lon,
-                zoom=1,
+                zoom=zoom_level,
                 pitch=0,
             )
 
             st.pydeck_chart(
                 pdk.Deck(
-                    layers=[layer],
+                    layers=[bubble_layer],
                     initial_view_state=view_state,
                     tooltip=tooltip,
+                    map_style="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
                 )
             )
 
             st.caption(
-                "Bubble size represents surf score. Green means excellent conditions, yellow/orange means mixed, and red means poor."
+                "Nearby points are slightly separated for readability. Hover over a point to see the exact spot name and forecast details."
             )
+
+            st.markdown(
+                """
+                **Score Legend:**  
+                🟢 Excellent: 85+ &nbsp;&nbsp; 🟡 Good/Okay: 55–84 &nbsp;&nbsp; 🟠 Poor: 40–54 &nbsp;&nbsp; 🔴 Bad: Below 40
+                """
+            )
+
+            st.markdown("---")
+            st.subheader("Best Surf Window by Location")
 
             map_cols = [
                 "spot",
@@ -539,6 +615,7 @@ with tab2:
                 "surf_score",
                 "surf_rating",
                 "wave_height_ft",
+                "swell_wave_period",
                 "wind_speed_mph",
             ]
 
@@ -550,6 +627,7 @@ with tab2:
             map_table["time"] = map_table["time"].dt.strftime("%a %b %d, %I:%M %p")
             map_table["wave_height_ft"] = map_table["wave_height_ft"].round(1)
             map_table["wind_speed_mph"] = map_table["wind_speed_mph"].round(1)
+            map_table = map_table.sort_values("surf_score", ascending=False)
 
             st.dataframe(
                 map_table.rename(
@@ -560,6 +638,7 @@ with tab2:
                         "surf_score": "Best Score",
                         "surf_rating": "Rating",
                         "wave_height_ft": "Wave ft",
+                        "swell_wave_period": "Swell sec",
                         "wind_speed_mph": "Wind mph",
                         "board_recommendation": "Recommended Board",
                     }
