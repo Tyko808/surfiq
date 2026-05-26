@@ -82,14 +82,14 @@ def get_score_color(score: float) -> list[int]:
     Returns RGBA color for the interactive map.
     """
     if score >= 85:
-        return [34, 197, 94, 190]      # green
+        return [34, 197, 94, 190]
     if score >= 70:
-        return [132, 204, 22, 190]     # light green
+        return [132, 204, 22, 190]
     if score >= 55:
-        return [234, 179, 8, 190]      # yellow
+        return [234, 179, 8, 190]
     if score >= 40:
-        return [249, 115, 22, 190]     # orange
-    return [239, 68, 68, 190]          # red
+        return [249, 115, 22, 190]
+    return [239, 68, 68, 190]
 
 
 def spread_nearby_points(
@@ -181,6 +181,25 @@ def display_score_breakdown(row: pd.Series) -> None:
     )
 
     st.bar_chart(breakdown.set_index("Component")["Score"])
+
+
+def filter_by_session_time(df: pd.DataFrame, preferred_session_time: str) -> pd.DataFrame:
+    """
+    Actually filters forecast rows based on the selected session time.
+
+    This is different from the scoring function, which only gives a small
+    score bonus for the preferred time.
+    """
+    if preferred_session_time == "morning":
+        return df[(df["time"].dt.hour >= 5) & (df["time"].dt.hour <= 11)].copy()
+
+    if preferred_session_time == "afternoon":
+        return df[(df["time"].dt.hour >= 12) & (df["time"].dt.hour <= 17)].copy()
+
+    if preferred_session_time == "evening":
+        return df[(df["time"].dt.hour >= 17) & (df["time"].dt.hour <= 21)].copy()
+
+    return df.copy()
 
 
 @st.cache_data(ttl=60 * 60)
@@ -349,8 +368,12 @@ df_window = df[
     & (df["time"] <= selected_range[1])
 ].copy()
 
+df_window = filter_by_session_time(df_window, preferred_session_time)
+
 if df_window.empty:
-    st.warning("No records available for the selected time range.")
+    st.warning(
+        f"No records available for the selected filters and preferred session time: {preferred_session_time}."
+    )
     st.stop()
 
 
