@@ -46,9 +46,9 @@ def build_forecast_dataset(
     )
 
     df = add_recommendation_reasons(
-    df,
-    user_skill_level=user_skill_level,
-)
+        df,
+        user_skill_level=user_skill_level,
+    )
 
     df = df.sort_values(["time", "spot"]).reset_index(drop=True)
 

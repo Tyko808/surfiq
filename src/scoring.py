@@ -28,8 +28,9 @@ def scale_score(value: float, ideal_min: float, ideal_max: float, max_score: flo
 def wave_height_score(row: pd.Series, user_skill_level: str) -> float:
     wave_ft = row.get("wave_height_ft")
 
-    spot_min = row.get("ideal_wave_min_ft", 2)
-    spot_max = row.get("ideal_wave_max_ft", 5)
+    spot_min = float(row.get("ideal_wave_min_ft", 2))
+    spot_max = float(row.get("ideal_wave_max_ft", 5))
+    big_wave_spot = row.get("big_wave_spot", False)
 
     skill_adjustments = {
         "beginner": (0.5, 3.0),
@@ -42,8 +43,17 @@ def wave_height_score(row: pd.Series, user_skill_level: str) -> float:
         skill_adjustments["intermediate"],
     )
 
-    ideal_min = max(float(spot_min), skill_min)
-    ideal_max = min(float(spot_max), skill_max)
+    is_big_wave_spot = pd.notna(big_wave_spot) and bool(big_wave_spot)
+
+    if is_big_wave_spot and user_skill_level != "advanced":
+        spot_score = scale_score(wave_ft, spot_min, spot_max, 30)
+        return min(spot_score, 10)
+
+    if user_skill_level == "advanced" and is_big_wave_spot:
+        skill_max = max(skill_max, spot_max)
+
+    ideal_min = max(spot_min, skill_min)
+    ideal_max = min(spot_max, skill_max)
 
     if ideal_min > ideal_max:
         ideal_min, ideal_max = skill_min, skill_max

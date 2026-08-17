@@ -84,6 +84,18 @@ spots:
     ideal_swell_period_max: 14
     ideal_tide: low_to_mid
 
+  - name: New Smyrna Beach Inlet, FL
+    region: Southeast US
+    latitude: 29.0584
+    longitude: -80.9047
+    skill_level: intermediate
+    offshore_wind_from_degrees: 240
+    ideal_wave_min_ft: 2
+    ideal_wave_max_ft: 6
+    ideal_swell_period_min: 8
+    ideal_swell_period_max: 15
+    ideal_tide: mid
+
   - name: Wrightsville Beach, NC
     latitude: 34.2085
     longitude: -77.7964
@@ -142,6 +154,43 @@ spots:
     ideal_swell_period_min: 10
     ideal_swell_period_max: 18
     ideal_tide: low_to_mid
+
+  - name: Rincon, CA
+    region: California
+    latitude: 34.3727
+    longitude: -119.4784
+    skill_level: advanced
+    offshore_wind_from_degrees: 60
+    ideal_wave_min_ft: 3
+    ideal_wave_max_ft: 10
+    ideal_swell_period_min: 12
+    ideal_swell_period_max: 20
+    ideal_tide: low_to_mid
+
+  - name: Black's Beach, CA
+    region: California
+    latitude: 32.8810
+    longitude: -117.2528
+    skill_level: advanced
+    offshore_wind_from_degrees: 90
+    ideal_wave_min_ft: 3
+    ideal_wave_max_ft: 10
+    ideal_swell_period_min: 10
+    ideal_swell_period_max: 18
+    ideal_tide: low_to_mid
+
+  - name: Mavericks, CA
+    region: California
+    latitude: 37.4919
+    longitude: -122.4992
+    skill_level: advanced
+    big_wave_spot: true
+    offshore_wind_from_degrees: 90
+    ideal_wave_min_ft: 8
+    ideal_wave_max_ft: 25
+    ideal_swell_period_min: 14
+    ideal_swell_period_max: 22
+    ideal_tide: mid
 
   - name: Ocean Beach, San Francisco, CA
     latitude: 37.7597
@@ -206,6 +255,7 @@ spots:
     latitude: 21.6797
     longitude: -158.0390
     skill_level: advanced
+    big_wave_spot: true
     offshore_wind_from_degrees: 135
     ideal_wave_min_ft: 4
     ideal_wave_max_ft: 14
@@ -222,6 +272,18 @@ spots:
     ideal_wave_max_ft: 10
     ideal_swell_period_min: 10
     ideal_swell_period_max: 18
+    ideal_tide: mid
+
+  - name: Hanalei Bay, Hawaii
+    region: Hawaii
+    latitude: 22.2200
+    longitude: -159.5000
+    skill_level: intermediate
+    offshore_wind_from_degrees: 160
+    ideal_wave_min_ft: 2
+    ideal_wave_max_ft: 8
+    ideal_swell_period_min: 9
+    ideal_swell_period_max: 17
     ideal_tide: mid
 
   # -------------------------
@@ -243,6 +305,7 @@ spots:
     latitude: 39.6029
     longitude: -9.0702
     skill_level: advanced
+    big_wave_spot: true
     offshore_wind_from_degrees: 90
     ideal_wave_min_ft: 5
     ideal_wave_max_ft: 15
@@ -521,6 +584,59 @@ spots:
     ideal_wave_max_ft: 5
     ideal_swell_period_min: 7
     ideal_swell_period_max: 14
+    ideal_tide: mid
+
+  # -------------------------
+  # Canada, UK, New Zealand, and Polynesia
+  # -------------------------
+
+  - name: Cox Bay, Canada
+    region: Canada
+    latitude: 49.1020
+    longitude: -125.8740
+    skill_level: intermediate
+    offshore_wind_from_degrees: 90
+    ideal_wave_min_ft: 3
+    ideal_wave_max_ft: 8
+    ideal_swell_period_min: 10
+    ideal_swell_period_max: 16
+    ideal_tide: mid_to_high
+
+  - name: Fistral Beach, United Kingdom
+    region: United Kingdom
+    latitude: 50.4160
+    longitude: -5.1010
+    skill_level: beginner
+    offshore_wind_from_degrees: 135
+    ideal_wave_min_ft: 2
+    ideal_wave_max_ft: 8
+    ideal_swell_period_min: 8
+    ideal_swell_period_max: 16
+    ideal_tide: mid
+
+  - name: Raglan Manu Bay, New Zealand
+    region: New Zealand
+    latitude: -37.8200
+    longitude: 174.8090
+    skill_level: intermediate
+    offshore_wind_from_degrees: 135
+    ideal_wave_min_ft: 2
+    ideal_wave_max_ft: 10
+    ideal_swell_period_min: 9
+    ideal_swell_period_max: 18
+    ideal_tide: low
+
+  - name: Teahupoo, Tahiti
+    region: French Polynesia
+    latitude: -17.8667
+    longitude: -149.2537
+    skill_level: advanced
+    big_wave_spot: true
+    offshore_wind_from_degrees: 70
+    ideal_wave_min_ft: 4
+    ideal_wave_max_ft: 15
+    ideal_swell_period_min: 12
+    ideal_swell_period_max: 20
     ideal_tide: mid
 
   # -------------------------
