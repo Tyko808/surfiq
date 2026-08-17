@@ -183,6 +183,225 @@ def display_score_breakdown(row: pd.Series) -> None:
     st.bar_chart(breakdown.set_index("Component")["Score"])
 
 
+def display_score_heatmap(df: pd.DataFrame) -> None:
+    """
+    Shows a spot-by-time score heatmap for the currently filtered forecast window.
+    """
+    heatmap_df = df.copy()
+
+    top_spots = (
+        heatmap_df.groupby("spot")["surf_score"]
+        .max()
+        .sort_values(ascending=False)
+        .head(12)
+        .index
+    )
+
+    heatmap_df = heatmap_df[heatmap_df["spot"].isin(top_spots)].copy()
+    heatmap_df["time_label"] = heatmap_df["time"].dt.strftime("%a %m/%d %I %p")
+    heatmap_df["surf_score"] = heatmap_df["surf_score"].round(1)
+    time_labels = heatmap_df.sort_values("time")["time_label"].drop_duplicates().tolist()
+
+    st.vega_lite_chart(
+        heatmap_df,
+        {
+            "mark": {"type": "rect", "tooltip": True},
+            "encoding": {
+                "x": {
+                    "field": "time_label",
+                    "type": "ordinal",
+                    "title": "Forecast Time",
+                    "sort": time_labels,
+                    "axis": {"labelAngle": -45, "labelOverlap": "greedy"},
+                },
+                "y": {
+                    "field": "spot",
+                    "type": "nominal",
+                    "title": "Surf Spot",
+                    "sort": list(top_spots),
+                },
+                "color": {
+                    "field": "surf_score",
+                    "type": "quantitative",
+                    "title": "Score",
+                    "scale": {
+                        "domain": [0, 40, 55, 70, 85, 100],
+                        "range": ["#ef4444", "#f97316", "#eab308", "#84cc16", "#22c55e", "#16a34a"],
+                    },
+                },
+                "tooltip": [
+                    {"field": "spot", "type": "nominal", "title": "Spot"},
+                    {"field": "region", "type": "nominal", "title": "Region"},
+                    {"field": "time_label", "type": "ordinal", "title": "Time"},
+                    {"field": "surf_score", "type": "quantitative", "title": "Score"},
+                    {"field": "surf_rating", "type": "nominal", "title": "Rating"},
+                    {"field": "wave_height_ft", "type": "quantitative", "title": "Wave ft", "format": ".1f"},
+                    {"field": "swell_wave_period", "type": "quantitative", "title": "Swell sec", "format": ".0f"},
+                    {"field": "wind_speed_mph", "type": "quantitative", "title": "Wind mph", "format": ".1f"},
+                ],
+            },
+            "height": max(260, min(520, 34 * len(top_spots))),
+        },
+        use_container_width=True,
+    )
+
+
+def display_condition_scatter(df: pd.DataFrame) -> None:
+    """
+    Interactive condition explorer for surf score relationships.
+    """
+    metric_options = {
+        "Wave Height": "wave_height_ft",
+        "Swell Period": "swell_wave_period",
+        "Wind Speed": "wind_speed_mph",
+        "Wind Direction": "wind_direction_10m",
+        "Water Temp": "sea_surface_temperature",
+        "Surf Score": "surf_score",
+    }
+
+    control_cols = st.columns(3)
+
+    with control_cols[0]:
+        x_label = st.selectbox(
+            "X axis",
+            list(metric_options),
+            index=0,
+            key="visual_x_axis",
+        )
+
+    with control_cols[1]:
+        y_label = st.selectbox(
+            "Y axis",
+            list(metric_options),
+            index=5,
+            key="visual_y_axis",
+        )
+
+    with control_cols[2]:
+        color_label = st.selectbox(
+            "Color",
+            ["surf_rating", "region", "spot"],
+            index=0,
+            key="visual_color",
+        )
+
+    x_col = metric_options[x_label]
+    y_col = metric_options[y_label]
+
+    scatter_df = df.dropna(subset=[x_col, y_col]).copy()
+    scatter_df["time_label"] = scatter_df["time"].dt.strftime("%a %b %d, %I:%M %p")
+    scatter_df["point_size"] = scatter_df["surf_score"].clip(12, 100)
+
+    st.vega_lite_chart(
+        scatter_df,
+        {
+            "mark": {"type": "circle", "opacity": 0.72},
+            "encoding": {
+                "x": {
+                    "field": x_col,
+                    "type": "quantitative",
+                    "title": x_label,
+                    "scale": {"zero": False},
+                },
+                "y": {
+                    "field": y_col,
+                    "type": "quantitative",
+                    "title": y_label,
+                    "scale": {"zero": False},
+                },
+                "color": {"field": color_label, "type": "nominal", "title": color_label.replace("_", " ").title()},
+                "size": {
+                    "field": "point_size",
+                    "type": "quantitative",
+                    "title": "Score",
+                    "legend": None,
+                },
+                "tooltip": [
+                    {"field": "spot", "type": "nominal", "title": "Spot"},
+                    {"field": "region", "type": "nominal", "title": "Region"},
+                    {"field": "time_label", "type": "nominal", "title": "Time"},
+                    {"field": "surf_score", "type": "quantitative", "title": "Score", "format": ".1f"},
+                    {"field": "surf_rating", "type": "nominal", "title": "Rating"},
+                    {"field": "wave_height_ft", "type": "quantitative", "title": "Wave ft", "format": ".1f"},
+                    {"field": "swell_wave_period", "type": "quantitative", "title": "Swell sec", "format": ".0f"},
+                    {"field": "wind_speed_mph", "type": "quantitative", "title": "Wind mph", "format": ".1f"},
+                ],
+            },
+            "height": 440,
+        },
+        use_container_width=True,
+    )
+
+
+def display_wind_direction_summary(df: pd.DataFrame) -> None:
+    """
+    Summarizes score and wind speed by compass bucket.
+    """
+    wind_df = df.dropna(subset=["wind_direction_10m"]).copy()
+
+    if wind_df.empty:
+        st.warning("No wind direction data available for the selected filters.")
+        return
+
+    labels = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+    wind_df["wind_bucket"] = (
+        ((wind_df["wind_direction_10m"] + 22.5) // 45).astype(int) % 8
+    ).map(dict(enumerate(labels)))
+
+    wind_summary = (
+        wind_df.groupby("wind_bucket")
+        .agg(
+            avg_score=("surf_score", "mean"),
+            avg_wind_mph=("wind_speed_mph", "mean"),
+            windows=("surf_score", "size"),
+        )
+        .reindex(labels)
+        .dropna()
+        .reset_index()
+    )
+
+    wind_summary["avg_score"] = wind_summary["avg_score"].round(1)
+    wind_summary["avg_wind_mph"] = wind_summary["avg_wind_mph"].round(1)
+
+    st.vega_lite_chart(
+        wind_summary,
+        {
+            "mark": {"type": "bar", "cornerRadiusTopLeft": 2, "cornerRadiusTopRight": 2},
+            "encoding": {
+                "x": {
+                    "field": "wind_bucket",
+                    "type": "ordinal",
+                    "title": "Wind Direction",
+                    "sort": labels,
+                },
+                "y": {
+                    "field": "avg_score",
+                    "type": "quantitative",
+                    "title": "Average Surf Score",
+                    "scale": {"domain": [0, 100]},
+                },
+                "color": {
+                    "field": "avg_score",
+                    "type": "quantitative",
+                    "title": "Score",
+                    "scale": {
+                        "domain": [0, 40, 55, 70, 85, 100],
+                        "range": ["#ef4444", "#f97316", "#eab308", "#84cc16", "#22c55e", "#16a34a"],
+                    },
+                },
+                "tooltip": [
+                    {"field": "wind_bucket", "type": "ordinal", "title": "Wind"},
+                    {"field": "avg_score", "type": "quantitative", "title": "Avg Score"},
+                    {"field": "avg_wind_mph", "type": "quantitative", "title": "Avg Wind mph"},
+                    {"field": "windows", "type": "quantitative", "title": "Windows"},
+                ],
+            },
+            "height": 300,
+        },
+        use_container_width=True,
+    )
+
+
 def filter_by_session_time(df: pd.DataFrame, preferred_session_time: str) -> pd.DataFrame:
     """
     Actually filters forecast rows based on the selected session time.
@@ -404,9 +623,10 @@ with st.expander("See why this score is high or low"):
 st.markdown("---")
 
 
-tab1, tab2, tab3, tab4 = st.tabs(
+tab1, tab2, tab3, tab4, tab5 = st.tabs(
     [
         "Overview",
+        "Visual Explorer",
         "Interactive Map",
         "Compare Spots",
         "Spot Detail",
@@ -456,6 +676,11 @@ with tab1:
         width="stretch",
         hide_index=True,
     )
+
+    st.markdown("---")
+
+    st.subheader("Surf Score Heatmap")
+    display_score_heatmap(df_window)
 
     st.markdown("---")
 
@@ -519,6 +744,15 @@ with tab1:
 
 
 with tab2:
+    st.subheader("Condition Explorer")
+    display_condition_scatter(df_window)
+
+    st.markdown("---")
+    st.subheader("Wind Direction Impact")
+    display_wind_direction_summary(df_window)
+
+
+with tab3:
     st.subheader("Interactive Surf Score Map")
     st.caption(
         "Each point shows the best forecasted surf window for that spot. "
@@ -671,7 +905,7 @@ with tab2:
             )
 
 
-with tab3:
+with tab4:
     st.subheader("Compare Two Surf Spots")
 
     available_compare_spots = sorted(df_window["spot"].unique())
@@ -765,7 +999,7 @@ with tab3:
                         display_score_breakdown(row)
 
 
-with tab4:
+with tab5:
     st.subheader("Spot Detail")
 
     available_spots = sorted(df_window["spot"].unique())
