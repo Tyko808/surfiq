@@ -19,6 +19,10 @@ st.caption(
     "An API-driven surf analytics dashboard that ranks surf windows using wave, swell, wind, and spot-specific scoring."
 )
 st.caption("Score guide: 85+ Excellent | 70–84 Good | 55–69 Okay | 40–54 Poor | Below 40 Bad")
+st.caption(
+    "Tide preferences are stored per spot, but tide is not included in the score "
+    "because the current forecast data has no tide observations."
+)
 st.caption(f"Last updated: {pd.Timestamp.now().strftime('%Y-%m-%d %I:%M %p')}")
 
 
@@ -776,7 +780,7 @@ with tab3:
         if map_df.empty:
             st.warning("No valid latitude/longitude data available for the selected spots.")
         else:
-            map_df = spread_nearby_points(map_df, offset_radius=0.75)
+            map_df = spread_nearby_points(map_df, offset_radius=0.05)
 
             map_df["color"] = map_df["surf_score"].apply(get_score_color)
 

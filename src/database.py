@@ -46,6 +46,15 @@ def initialize_database(db_path: Path = DB_PATH) -> None:
                 ideal_tide TEXT,
                 surf_score REAL,
                 surf_rating TEXT,
+                wave_score REAL,
+                swell_score REAL,
+                wind_speed_score REAL,
+                wind_direction_score REAL,
+                water_temp_score REAL,
+                time_score REAL,
+                recommendation_reason TEXT,
+                board_recommendation TEXT,
+                region TEXT,
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
             )
             """
@@ -57,6 +66,28 @@ def initialize_database(db_path: Path = DB_PATH) -> None:
             ON surf_forecasts (spot, time)
             """
         )
+
+        # Upgrade databases created by earlier versions without discarding
+        # the user's saved forecast history.
+        existing_columns = {
+            row[1] for row in conn.execute("PRAGMA table_info(surf_forecasts)")
+        }
+        new_columns = {
+            "wave_score": "REAL",
+            "swell_score": "REAL",
+            "wind_speed_score": "REAL",
+            "wind_direction_score": "REAL",
+            "water_temp_score": "REAL",
+            "time_score": "REAL",
+            "recommendation_reason": "TEXT",
+            "board_recommendation": "TEXT",
+            "region": "TEXT",
+        }
+        for column, column_type in new_columns.items():
+            if column not in existing_columns:
+                conn.execute(
+                    f"ALTER TABLE surf_forecasts ADD COLUMN {column} {column_type}"
+                )
 
 
 def save_forecasts_to_db(df: pd.DataFrame, db_path: Path = DB_PATH) -> None:
@@ -90,6 +121,15 @@ def save_forecasts_to_db(df: pd.DataFrame, db_path: Path = DB_PATH) -> None:
         "ideal_tide",
         "surf_score",
         "surf_rating",
+        "wave_score",
+        "swell_score",
+        "wind_speed_score",
+        "wind_direction_score",
+        "water_temp_score",
+        "time_score",
+        "recommendation_reason",
+        "board_recommendation",
+        "region",
     ]
 
     available_columns = [col for col in columns if col in df.columns]
