@@ -58,7 +58,20 @@ def wave_height_score(row: pd.Series, user_skill_level: str) -> float:
     if ideal_min > ideal_max:
         ideal_min, ideal_max = skill_min, skill_max
 
-    return scale_score(wave_ft, ideal_min, ideal_max, 30)
+    score = scale_score(wave_ft, ideal_min, ideal_max, 30)
+
+    # A spot's configured skill level is a safety constraint: surfers below
+    # that level should not see a high total score driven by ideal wave size.
+    skill_rank = {"beginner": 0, "intermediate": 1, "advanced": 2}
+    spot_skill_level = row.get("skill_level")
+    if (
+        spot_skill_level in skill_rank
+        and user_skill_level in skill_rank
+        and skill_rank[user_skill_level] < skill_rank[spot_skill_level]
+    ):
+        score = min(score, 10)
+
+    return score
 
 
 def swell_period_score(row: pd.Series) -> float:
